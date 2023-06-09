@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useMemo, useReducer, useCallback } from "react";
 import Loading from "components/Loading";
 import Error from "components/Error";
-
 import { reducer } from "reducers/topicReducer";
 import { TopicStateContext, TopicDispatchContext } from "context/Context";
+import Header from "components/Header";
 import TopicList from "components/TopicList";
-import TopicCategory from "components/TopicFilter";
+import TopicFilter from "components/TopicFilter";
+import TopicSearch from "components/TopicSearch";
+import { ThemeProvider } from "styled-components";
+import ThemeStyles from "styles/ThemeStyle";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
@@ -29,10 +32,10 @@ export default function App() {
     fetchTopic();
   }, []);
 
-  const handleFilter = useCallback((filter) => {
-    dispatch({ 
+  const handleFilter = useCallback((selectedFilter) => {
+    dispatch({
       type: "CHANGE_FILTER",
-      filter
+      selectedFilter,
     });
   }, []);
 
@@ -40,8 +43,11 @@ export default function App() {
     dispatch({ type: "TOGGLE_FAVOURITES" });
   }, []);
 
-  const handleSearch = useCallback(() => {
-    dispatch({ type: "SEARCH" });
+  const handleSearch = useCallback((searchWord) => {
+    dispatch({ 
+      type: "SEARCH", 
+      searchWord, 
+    });
   }, []);
 
   const memoizedDispatches = useMemo(() => {
@@ -54,10 +60,15 @@ export default function App() {
   return (
     <TopicStateContext.Provider value={state}>
       <TopicDispatchContext.Provider value={memoizedDispatches}>
-        <div className="App">
-          <TopicCategory/>
-          <TopicList />
-        </div>
+        <ThemeProvider theme={ThemeStyles}>
+          <div className="App">
+            <Header>
+              <TopicFilter/>
+              <TopicSearch />
+            </Header>
+            <TopicList />
+          </div>
+        </ThemeProvider>
       </TopicDispatchContext.Provider>
     </TopicStateContext.Provider>
   );

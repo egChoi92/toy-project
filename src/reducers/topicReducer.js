@@ -3,21 +3,24 @@ export const reducer = (state, action) => {
     case "INIT": {
       return {
         topicData: action.data,
-        filter: '전체'
+        selectedFilter: "전체",
+        searchWord: "",
       };
     }
     case "CHANGE_FILTER": {
       return {
         ...state,
-        filter: action.filter
+        selectedFilter: action.selectedFilter,
+      };
+    }
+    case "SEARCH": {
+      return {
+        ...state,
+        searchWord: action.searchWord,
       };
     }
     case "TOGGLE_FAVOURITES": {
       console.log("favourites dispatch");
-      return state;
-    }
-    case "SEARCH": {
-      console.log("search dispatch");
       return state;
     }
     default:
