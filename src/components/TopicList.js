@@ -7,17 +7,21 @@ const StyledList = styled.ul`
   display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(20%, auto));
 	gap: 40px 20px;
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
+  margin-top: 20px;
 `
 
 export default function TopicList() {
-  const topicData = useContext(TopicStateContext);
+  const {topicData, filter} = useContext(TopicStateContext);
+  
+  const filterList = () => {
+    if (!filter || filter === '전체') return topicData;
+    return topicData.filter(data => data.grade === filter);
+  }
 
+  const topicList = filterList();
   return (
     <StyledList>
-      {topicData.map((data) => (
+      {topicList?.map((data) => (
         <TopicItem key={data.idx} {...data}/>
       ))}
     </StyledList>

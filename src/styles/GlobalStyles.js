@@ -36,6 +36,11 @@ const GlobalStyles = createGlobalStyle`
         width: 100%;
         vertical-align: top;
     }
+    .App {
+        max-width: 1200px;
+        margin: auto;
+        padding: 20px;
+    }
 `;
  
 export default GlobalStyles;

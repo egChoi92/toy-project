@@ -1,12 +1,16 @@
 export const reducer = (state, action) => {
-  const { type, payload } = action;
-  switch (type) {
+  switch (action.type) {
     case "INIT": {
-      return payload;
+      return {
+        topicData: action.data,
+        filter: '전체'
+      };
     }
-    case "FILTER": {
-      console.log("filter dispatch");
-      return state;
+    case "CHANGE_FILTER": {
+      return {
+        ...state,
+        filter: action.filter
+      };
     }
     case "TOGGLE_FAVOURITES": {
       console.log("favourites dispatch");
