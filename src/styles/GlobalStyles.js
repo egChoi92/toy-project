@@ -16,12 +16,12 @@ const GlobalStyles = createGlobalStyle`
         padding: 0;
         border: 0;
         font-size: 10px;
+        line-height: 1.4;
         vertical-align: baseline;
     }
     body{
         line-height: 1;
         font-family: 'Noto Sans KR', sans-serif;
-        background-color: #F6F9F0;
         margin-bottom: 100px;
     }
     ol, ul{
@@ -31,6 +31,10 @@ const GlobalStyles = createGlobalStyle`
         border: 0;
         background: transparent;
         cursor: pointer;
+    }
+    img {
+        width: 100%;
+        vertical-align: top;
     }
 `;
  
