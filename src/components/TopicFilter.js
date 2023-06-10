@@ -1,6 +1,8 @@
-import { useContext } from "react";
+import { memo } from "react";
 import { TopicDispatchContext, TopicStateContext } from "context/Context";
 import styled from "styled-components";
+import { useMemoContext } from "hooks/useMemoContext";
+
 const StyledFilterList = styled.ul`
   display: flex;
   flex-wrap: wrap;
@@ -49,9 +51,7 @@ const FilterList = [
   },
 ];
 
-const TopicFilter = () => {
-  const { handleFilter } = useContext(TopicDispatchContext);
-  const { selectedFilter } = useContext(TopicStateContext);
+const Component = ({ selectedFilter, handleFilter }) => {
   return (
     <StyledFilterList>
       {FilterList.map((item, index) => (
@@ -69,5 +69,18 @@ const TopicFilter = () => {
     </StyledFilterList>
   );
 };
+
+const MemoizedComponent = (myComponent) => {
+  const MemoComponent = memo(myComponent);
+  const CustomMemoComponent = () => {
+    const selectedFilter = useMemoContext(TopicStateContext, "selectedFilter");
+    const handleFilter = useMemoContext(TopicDispatchContext, "handleFilter");
+    const props = { selectedFilter, handleFilter };
+    return <MemoComponent {...props} />;
+  };
+  return CustomMemoComponent;
+};
+
+const TopicFilter = MemoizedComponent(Component);
 
 export default TopicFilter;

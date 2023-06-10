@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useReducer, useCallback } from "react";
+import { useState, useEffect, useMemo, useReducer, useCallback } from "react";
 import Loading from "components/Loading";
 import Error from "components/Error";
 import { reducer } from "reducers/topicReducer";
@@ -44,15 +44,15 @@ export default function App() {
   }, []);
 
   const handleSearch = useCallback((searchWord) => {
-    dispatch({ 
-      type: "SEARCH", 
-      searchWord, 
+    dispatch({
+      type: "SEARCH",
+      searchWord,
     });
   }, []);
 
   const memoizedDispatches = useMemo(() => {
     return { handleFilter, toggleFavourites, handleSearch };
-  }, []);
+  }, [handleFilter, toggleFavourites, handleSearch]);
 
   if (loading) return <Loading />;
   if (error) return <Error />;
@@ -63,7 +63,7 @@ export default function App() {
         <ThemeProvider theme={ThemeStyles}>
           <div className="App">
             <Header>
-              <TopicFilter/>
+              <TopicFilter />
               <TopicSearch />
             </Header>
             <TopicList />
