@@ -1,7 +1,8 @@
-import { useContext } from "react";
+import { memo, useContext } from "react";
 import { TopicStateContext } from "context/Context";
 import TopicItem from "components/TopicItem";
 import styled from "styled-components";
+import { useMemoContext } from "hooks/useMemoContext";
 
 const StyledList = styled.ul`
   display: grid;
@@ -10,15 +11,15 @@ const StyledList = styled.ul`
   margin-top: 20px;
 `;
 
-const TopicList = () => {
-  const { topicData, selectedFilter } = useContext(TopicStateContext);
-
-  const filterList = () => {
+const Components = ({topicData, selectedFilter}) => {
+  
+  const getList = () => {
     if (!selectedFilter || selectedFilter === "전체") return topicData;
-    return topicData.filter((data) => data.grade === selectedFilter);
+    const filterList = topicData.filter((data) => data.grade === selectedFilter);
+  
+    return filterList;
   };
-
-  const topicList = filterList();
+  const topicList = getList();
   return (
     <StyledList>
       {topicList?.map((data) => (
@@ -26,6 +27,22 @@ const TopicList = () => {
       ))}
     </StyledList>
   );
-};
+}
+
+const MemoizedComponents = (myComponent) => {
+  const MemoComponent = memo(myComponent);
+  const CustomMemoComponent = () => { 
+  const topicData = useMemoContext(TopicStateContext, 'topicData')
+  const selectedFilter = useMemoContext(TopicStateContext, 'selectedFilter')
+
+  const props = {topicData, selectedFilter};
+    return <MemoComponent {...props}/>;
+  }
+  return CustomMemoComponent;
+}
+const TopicList = MemoizedComponents(Components);
+
+
+
 
 export default TopicList;
