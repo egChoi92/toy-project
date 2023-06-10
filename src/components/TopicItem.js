@@ -1,7 +1,9 @@
 import styled from "styled-components";
+import TopicLike from './TopicLike';
 
 const StyledItem = styled.li``;
 const StyledThumbnail = styled.div`
+  position: relative;
   border: 1px solid #dfdfdf;
 `;
 const StyledInformation = styled.div`
@@ -14,11 +16,12 @@ const StyledTitle = styled.p`
   word-break: keep-all;
 `;
 
-export default function TopicItem({ imgPath, title }) {
+export default function TopicItem({ idx, imgPath, title }) {
   return (
     <StyledItem>
       <StyledThumbnail>
         <img src={imgPath} alt="" />
+        <TopicLike idx={idx}/>
       </StyledThumbnail>
       <StyledInformation>
         <StyledTitle>{title}</StyledTitle>

@@ -19,10 +19,6 @@ export const reducer = (state, action) => {
         searchWord: action.searchWord,
       };
     }
-    case "TOGGLE_FAVOURITES": {
-      console.log("favourites dispatch");
-      return state;
-    }
     default:
       return state;
   }

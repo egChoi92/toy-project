@@ -14,7 +14,6 @@ const StyledList = styled.ul`
 `;
 
 const Components = ({ topicData, selectedFilter, searchWord }) => {
-  console.log('selectedFilter: ', selectedFilter);
   const filteredList = useMemo(() => {
     if (!selectedFilter || selectedFilter === "전체") return topicData;
     const filterList = topicData.filter((data) => data.grade === selectedFilter);
