@@ -19,16 +19,33 @@ export default function App() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("./data/topic.json");
+      const response = await fetch("http://localhost:4000/topics?page=1", {
+        header: {
+          "Content-Type": "application/json",
+        }
+      });
+      console.log(await response);
       const data = await response.json();
       dispatch({ type: "INIT", data });
     } catch (error) {
+      console.log("error: ", error);
       setError(error);
     }
     setLoading(false);
   };
 
   useEffect(() => {
+    // fetch("http://localhost:4000/topics?page=1", {
+    //   header: {
+    //     "Content-Type": "application/json",
+    //   },
+    // }).then((response) => {
+    //   console.log('response: ', response);
+    //   return response.json();
+    // }).then(data => {
+    //   console.log('data: ', data);
+    //   return data;
+    // }) 
     fetchTopic();
   }, []);
 
