@@ -1,3 +1,4 @@
+import TopicImage from 'components/TopicImage';
 import TopicLike from './TopicLike';
 import styled from "styled-components";
 
@@ -20,7 +21,7 @@ export default function TopicItem({ idx, imgPath, title }) {
   return (
     <StyledItem>
       <StyledThumbnail>
-        <img src={imgPath} alt="" />
+        <TopicImage imgPath={imgPath} alt={`${title}의 이미지`} />
         <TopicLike idx={idx}/>
       </StyledThumbnail>
       <StyledInformation>
