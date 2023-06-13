@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useReducer, useCallback } from "react";
+import { useState, useEffect, useMemo, useReducer, useCallback, useRef } from "react";
 import Loading from "components/Loading";
 import Error from "components/Error";
 import { reducer } from "reducers/topicReducer";
@@ -15,39 +15,31 @@ export default function App() {
   const [error, setError] = useState(null);
   const [state, dispatch] = useReducer(reducer, {});
 
-  const fetchTopic = async () => {
+  const [page, setPage] = useState(1);
+
+  const fetchTopic = async (page) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("http://localhost:4000/topics?page=1", {
+      const response = await fetch(`http://localhost:4000/topics?page=${page}`, {
         header: {
           "Content-Type": "application/json",
         }
       });
-      console.log(await response);
       const data = await response.json();
       dispatch({ type: "INIT", data });
     } catch (error) {
-      console.log("error: ", error);
+      console.log('Topic Fetch Error: ', error);
       setError(error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    // fetch("http://localhost:4000/topics?page=1", {
-    //   header: {
-    //     "Content-Type": "application/json",
-    //   },
-    // }).then((response) => {
-    //   console.log('response: ', response);
-    //   return response.json();
-    // }).then(data => {
-    //   console.log('data: ', data);
-    //   return data;
-    // }) 
-    fetchTopic();
-  }, []);
+    console.log(page);
+    fetchTopic(page);
+  }, [page]);
 
   const handleFilter = useCallback((selectedFilter) => {
     dispatch({
@@ -79,6 +71,7 @@ export default function App() {
       <TopicDispatchContext.Provider value={memoizedDispatches}>
         <ThemeProvider theme={ThemeStyles}>
           <div className="App">
+            <button type="button" onClick={() => setPage(prev => prev+1)}>PAGE UP </button>
             <Header>
               <TopicFilter />
               <TopicSearch />

@@ -15,30 +15,30 @@ const StyledList = styled.ul`
 `;
 
 const Components = ({ topicData, selectedFilter, searchWord }) => {
-  const debounceSearchWord = useDebounce(searchWord, 300)
+  console.log('topicData: ', topicData);
+  const debounceSearchWord = useDebounce(searchWord, 300);
   const filteredList = useMemo(() => {
     if (!selectedFilter || selectedFilter === "전체") return topicData;
     const filterList = topicData.filter((data) => data.grade === selectedFilter);
     return filterList;
-  }, [selectedFilter])
-  
+  }, [selectedFilter, topicData]);
+
   const searchedList = useMemo(() => {
-    
     if (debounceSearchWord?.match(/^[가-힣a-zA-Z\s]+$/)) {
       return filteredList.filter((data) => {
         const title = data.title.toLowerCase();
-        return title.includes(searchWord)
+        return title.includes(debounceSearchWord);
       });
     } else {
       return filteredList;
     }
-  }, [selectedFilter, debounceSearchWord])
+  }, [filteredList, debounceSearchWord]);
   const topicList = searchedList;
   return (
     <StyledList>
-      {topicList?.map((data) => (
-        <TopicItem key={data.idx} {...data} />
-      ))}
+      {topicList?.map((data) => {
+        return <TopicItem key={data.idx} {...data} />;
+      })}
     </StyledList>
   );
 };

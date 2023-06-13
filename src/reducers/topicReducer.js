@@ -2,7 +2,7 @@ export const reducer = (state, action) => {
   switch (action.type) {
     case "INIT": {
       return {
-        topicData: action.data,
+        topicData: state.topicData ? [...state.topicData, ...action.data] : [],
         selectedFilter: "전체",
         searchWord: "",
       };
