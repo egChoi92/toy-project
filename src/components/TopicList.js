@@ -1,11 +1,10 @@
-import { memo, useContext } from "react";
+import { memo, useMemo } from "react";
 import { TopicStateContext } from "context/Context";
-import TopicItem from "components/TopicItem";
-import styled from "styled-components";
 import { useMemoContext } from "hooks/useMemoContext";
-import { useEffect } from "react";
-import { useMemo } from "react";
 import { useDebounce } from "hooks/useDebounce";
+import TopicItem from "components/TopicItem";
+import TopicFetchObserver from "components/TopicFetchObserver";
+import styled from "styled-components";
 
 const StyledList = styled.ul`
   display: grid;
@@ -15,13 +14,15 @@ const StyledList = styled.ul`
 `;
 
 const Components = ({ topicData, selectedFilter, searchWord }) => {
-  console.log('topicData: ', topicData);
-  const debounceSearchWord = useDebounce(searchWord, 300);
+  
+
   const filteredList = useMemo(() => {
     if (!selectedFilter || selectedFilter === "전체") return topicData;
     const filterList = topicData.filter((data) => data.grade === selectedFilter);
     return filterList;
   }, [selectedFilter, topicData]);
+
+  const debounceSearchWord = useDebounce(searchWord, 300);
 
   const searchedList = useMemo(() => {
     if (debounceSearchWord?.match(/^[가-힣a-zA-Z\s]+$/)) {
@@ -33,13 +34,18 @@ const Components = ({ topicData, selectedFilter, searchWord }) => {
       return filteredList;
     }
   }, [filteredList, debounceSearchWord]);
+
   const topicList = searchedList;
+
   return (
-    <StyledList>
-      {topicList?.map((data) => {
-        return <TopicItem key={data.idx} {...data} />;
-      })}
-    </StyledList>
+    <>
+      <StyledList>
+        {topicList?.map((data) => {
+          return <TopicItem key={data.idx} {...data} />;
+        })}
+      </StyledList>
+      <TopicFetchObserver/>
+    </>
   );
 };
 

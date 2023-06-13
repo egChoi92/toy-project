@@ -1,5 +1,5 @@
-import styled from "styled-components";
 import TopicLike from './TopicLike';
+import styled from "styled-components";
 
 const StyledItem = styled.li``;
 const StyledThumbnail = styled.div`

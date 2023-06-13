@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { TopicDispatchContext, TopicStateContext } from "context/Context";
-import styled from "styled-components";
 import { useMemoContext } from "hooks/useMemoContext";
+import styled from "styled-components";
 
 const StyledFilterList = styled.ul`
   display: flex;
