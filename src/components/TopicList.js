@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { useMemoContext } from "hooks/useMemoContext";
 import { useEffect } from "react";
 import { useMemo } from "react";
+import { useDebounce } from "hooks/useDebounce";
 
 const StyledList = styled.ul`
   display: grid;
@@ -14,6 +15,7 @@ const StyledList = styled.ul`
 `;
 
 const Components = ({ topicData, selectedFilter, searchWord }) => {
+  const debounceSearchWord = useDebounce(searchWord, 300)
   const filteredList = useMemo(() => {
     if (!selectedFilter || selectedFilter === "전체") return topicData;
     const filterList = topicData.filter((data) => data.grade === selectedFilter);
@@ -21,7 +23,8 @@ const Components = ({ topicData, selectedFilter, searchWord }) => {
   }, [selectedFilter])
   
   const searchedList = useMemo(() => {
-    if (searchWord?.match(/^[가-힣a-zA-Z\s]+$/)) {
+    
+    if (debounceSearchWord?.match(/^[가-힣a-zA-Z\s]+$/)) {
       return filteredList.filter((data) => {
         const title = data.title.toLowerCase();
         return title.includes(searchWord)
@@ -29,7 +32,7 @@ const Components = ({ topicData, selectedFilter, searchWord }) => {
     } else {
       return filteredList;
     }
-  }, [selectedFilter, searchWord])
+  }, [selectedFilter, debounceSearchWord])
   const topicList = searchedList;
   return (
     <StyledList>
@@ -46,7 +49,6 @@ const MemoizedComponents = (myComponent) => {
     const topicData = useMemoContext(TopicStateContext, "topicData");
     const selectedFilter = useMemoContext(TopicStateContext, "selectedFilter");
     const searchWord = useMemoContext(TopicStateContext, "searchWord");
-
     const props = { topicData, selectedFilter, searchWord };
     return <MemoComponent {...props} />;
   };
