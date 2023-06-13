@@ -5,8 +5,8 @@ const StyledButton = styled.button`
   position: absolute;
   right: 10px;
   bottom: 10px;
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
 `;
 
 export default function TopicLike({ idx }) {
@@ -20,11 +20,11 @@ export default function TopicLike({ idx }) {
     setLiked(!liked);
   };
 
-  const iconName = liked? "icon_favourites_checked.svg" : "icon_favourites.svg";
+  const checkedState = liked? "checked" : "unchecked";
 
   return (
     <StyledButton onClick={handleLikeClick}>
-      <img src={`${process.env.PUBLIC_URL}/images/${iconName}`} alt="" />
+      <img src={`${process.env.PUBLIC_URL}/images/icon_liked_${checkedState}.svg`} alt="" />
     </StyledButton>
   );
 }
