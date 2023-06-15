@@ -2,12 +2,14 @@ import { useRef, useState } from "react";
 
 export default function UserForm({handleSubmit, setUserInputData, button}) {
   const [isValid, setIsValid] = useState(false);
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
+  const emailInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
+  
+  const passwordInputType = button.id === 'signup' ? 'text' : 'password';
   
   const handleValid = () => {
-    const email = emailRef.current.value;
-    const password = passwordRef.current.value;
+    const email = emailInputRef.current.value;
+    const password = passwordInputRef.current.value;
     if (email.includes('@') && password.length >= 8) {
       setIsValid(true)
       setUserInputData({
@@ -21,9 +23,9 @@ export default function UserForm({handleSubmit, setUserInputData, button}) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input data-testid="email-input" ref={emailRef} onInput={handleValid} />
-      <input data-testid="password-input" ref={passwordRef} onInput={handleValid} />
-      <button data-testid={button.id} disabled={!isValid}>{button.text}</button>
+      <input type="email" data-testid="email-input" ref={emailInputRef} onInput={handleValid} />
+      <input type={passwordInputType} data-testid="password-input" ref={passwordInputRef} onInput={handleValid} />
+      <button type="submit" data-testid={`${button.id}-button`} disabled={!isValid}>{button.text}</button>
     </form>
   )
 }

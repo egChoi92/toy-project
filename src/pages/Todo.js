@@ -1,3 +1,4 @@
+import TodoList from "components/TodoList";
 import React from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,5 +12,8 @@ export default function Todo() {
     }
   }, []);
 
-  return <div>Todo</div>;
+  return (<div>
+    <TodoList/>
+  </div>
+  );
 }

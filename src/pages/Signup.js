@@ -28,7 +28,7 @@ export default function Signup() {
     handleSubmit,
     setUserInputData,
     button: {
-      id: "signup-button",
+      id: "signup",
       text: "회원가입",
     },
   };

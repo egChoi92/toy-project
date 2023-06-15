@@ -26,7 +26,7 @@ export default function Login() {
     handleSubmit,
     setUserInputData,
     button: {
-      id: "signin-button",
+      id: "signin",
       text: "로그인",
     },
   };
