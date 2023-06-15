@@ -1,7 +1,27 @@
-import React from 'react'
+import { useState } from "react";
+import { userApi } from "api/user";
+import UserForm from "components/UserForm";
+import { useNavigate } from "react-router-dom";
 
-export default function Signin() {
-  return (
-    <div>Signin</div>
-  )
+export default function Login() {
+  const [userInputData, setUserInputData] = useState({});
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await userApi("/auth/signin", userInputData);
+    if (response.status === 200) {
+      localStorage.setItem("access_token", response.data.access_token);
+      navigate("/todos");
+    }
+  };
+  const props = {
+    handleSubmit,
+    setUserInputData,
+    button: {
+      id: "signin-button",
+      text: "로그인",
+    },
+  };
+  return <UserForm {...props} />;
 }
