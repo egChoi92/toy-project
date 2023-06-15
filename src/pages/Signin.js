@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { userApi } from "api/user";
 import UserForm from "components/UserForm";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,13 @@ export default function Login() {
       navigate("/todos");
     }
   };
+
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      navigate("/todo");
+    }
+  }, []);
+
   const props = {
     handleSubmit,
     setUserInputData,
@@ -23,5 +30,6 @@ export default function Login() {
       text: "로그인",
     },
   };
+
   return <UserForm {...props} />;
 }

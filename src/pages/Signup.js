@@ -2,6 +2,7 @@ import { useState } from "react";
 import { userApi } from "api/user";
 import UserForm from "components/UserForm";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Signup() {
   const [userInputData, setUserInputData] = useState({});
@@ -16,7 +17,13 @@ export default function Signup() {
       navigate("/signin");
     }
   };
-  
+
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      navigate("/todo");
+    }
+  }, []);
+
   const props = {
     handleSubmit,
     setUserInputData,
