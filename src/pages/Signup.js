@@ -3,6 +3,7 @@ import { userApi } from "api/user";
 import UserForm from "components/UserForm";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import 'styles/User.scss';
 
 export default function Signup() {
   const [userInputData, setUserInputData] = useState({});

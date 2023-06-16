@@ -12,6 +12,6 @@ export default function TodoDelete({id, setTodoList}) {
   };
 
   return (
-      <button data-testid="delete-button" onClick={handleDelete}>삭제</button>
+      <button type="button" className="todo-list__button todo-list__button--negative" data-testid="delete-button" onClick={handleDelete}>삭제</button>
   );
 }

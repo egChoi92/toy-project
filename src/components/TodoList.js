@@ -17,13 +17,13 @@ export default function TodoList() {
   }, []);
 
   return (
-    <section>
+    <div>
       <TodoCreate setTodoList={setTodoList} />
-      <ul>
+      <ul className="todo-list">
         {todoList?.map((todo) => (
           <TodoItem key={todo.id} todo={todo} setTodoList={setTodoList}/>
         ))}
       </ul>
-    </section>
+    </div>
   );
 }

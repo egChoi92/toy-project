@@ -14,15 +14,15 @@ export default function TodoUtil({ todo, setTodoList, isModify, setIsModify }) {
     const todo = todoInputRef.current.value;
     const updateTodoData = {
       todo,
-      isCompleted
-    }
-    const repsonse = await updateTodoApi(todoId, updateTodoData)
+      isCompleted,
+    };
+    const repsonse = await updateTodoApi(todoId, updateTodoData);
     const newTodoItem = repsonse.data;
-    toggleModifyMode()
-    setTodoList(prev => {
-      return prev.map((prevItem) => prevItem.id === todoId? newTodoItem : prevItem)
-    })
-  }
+    toggleModifyMode();
+    setTodoList((prev) => {
+      return prev.map((prevItem) => (prevItem.id === todoId ? newTodoItem : prevItem));
+    });
+  };
 
   useEffect(() => {
     if (isModify) {
@@ -31,18 +31,33 @@ export default function TodoUtil({ todo, setTodoList, isModify, setIsModify }) {
   }, [isModify]);
 
   return (
-    <span>
+    // <div className="todo-modify">
+    <>
       {isModify ? (
-        <span>
-          <input data-testid="modify-input" ref={todoInputRef} defaultValue={todo.todo} />
-          <button data-testid="submit-button" onClick={handleModify}>제출</button>
-          <button data-testid="cancel-button" onClick={toggleModifyMode}>취소</button>
+        <span className="todo-modify">
+          <label htmlFor="modify-input" className="todo-modify__label">
+            <span className="hidden">Todo Text</span>
+            <input
+              type="text"
+              id="modify-input"
+              className="input"
+              data-testid="modify-input"
+              ref={todoInputRef}
+              defaultValue={todo.todo}
+            />
+          </label>
+          <button type="button" className="todo-modify__button todo-modify__button--positive" data-testid="submit-button" onClick={handleModify}>
+            제출
+          </button>
+          <button type="button" className="todo-modify__button" data-testid="cancel-button" onClick={toggleModifyMode}>
+            취소
+          </button>
         </span>
       ) : (
-        <button data-testid="modify-button" onClick={toggleModifyMode}>
+        <button type="button" className="todo-list__button todo-list__button--positive" data-testid="modify-button" onClick={toggleModifyMode}>
           수정
         </button>
       )}
-    </span>
+    </>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { userApi } from "api/user";
 import UserForm from "components/UserForm";
 import { Link, useNavigate } from "react-router-dom";
+import 'styles/User.scss';
 
 export default function Login() {
   const [userInputData, setUserInputData] = useState({});

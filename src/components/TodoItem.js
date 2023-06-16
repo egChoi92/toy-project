@@ -13,7 +13,7 @@ export default function TodoItem({ todo, setTodoList }) {
   const handleChecked = async () => {
     const isCompleted = checkboxRef.current.checked;
 
-    const todo = isModify ? todoText :todoTextRef.current.textContent;
+    const todo = isModify ? todoText : todoTextRef.current.textContent;
     const updateTodoData = {
       todo,
       isCompleted,
@@ -23,7 +23,7 @@ export default function TodoItem({ todo, setTodoList }) {
     const modifyTodoItem = response.data;
 
     if (isModify) {
-      setIsModify(false)
+      setIsModify(false);
     }
     setTodoList((prev) => {
       return prev.map((prevItem) => {
@@ -39,11 +39,23 @@ export default function TodoItem({ todo, setTodoList }) {
   // }, [isModify])
 
   return (
-    <li>
-      <label>
-        <input type="checkbox" ref={checkboxRef} defaultChecked={todo.isCompleted} onChange={handleChecked} />
-        {!isModify && <span ref={todoTextRef}>{todoText}</span>}
+    <li className="todo-list__item">
+      <label htmlFor="todo-checkbox" className="checkbox-label">
+        <input
+          type="checkbox"
+          id="todo-checkbox"
+          className="hidden"
+          ref={checkboxRef}
+          defaultChecked={todo.isCompleted}
+          onChange={handleChecked}
+        />
+        <span className="checkbox-label__icon"></span>
       </label>
+      {!isModify && (
+        <span ref={todoTextRef} className="todo-list__text">
+          {todoText}
+        </span>
+      )}
       <TodoModify todo={todo} isModify={isModify} setIsModify={setIsModify} setTodoList={setTodoList} />
       <TodoDelete id={todoId} setTodoList={setTodoList} />
     </li>

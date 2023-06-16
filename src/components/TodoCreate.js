@@ -12,9 +12,12 @@ export default function TodoCreate({ setTodoList }) {
   };
   
   return (
-    <div>
-      <input data-testid="new-todo-input" ref={newTodoInputRef} />
-      <button type="button" data-testid="new-todo-add-button" onClick={handleCreate}>
+    <div className="todo-create">
+      <label htmlFor="new-todo-input" className="todo-label">
+        <span className="todo-label__title">해야할 일을 입력해주세요</span>
+        <input id="new-todo-input" data-testid="new-todo-input" ref={newTodoInputRef} />
+      </label>
+      <button type="button" className="todo-create__button" data-testid="new-todo-add-button" onClick={handleCreate}>
         추가
       </button>
     </div>

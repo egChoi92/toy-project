@@ -24,13 +24,13 @@ export default function UserForm({ handleSubmit, setUserInputData, button }) {
   return (
     <form onSubmit={handleSubmit} className="user-form">
       <div className="user-form__input">
-        <label htmlFor="email-input" className="label">
-          <span className="label__title">Email</span>
-          <input type="email" id="email-input" className="label__input" data-testid="email-input" ref={emailInputRef} onInput={handleValid} />
+        <label htmlFor="email-input" className="user-label">
+          <span className="user-label__title">Email</span>
+          <input type="email" id="email-input" data-testid="email-input" ref={emailInputRef} onInput={handleValid} />
         </label>
         <label htmlFor="password-input" className="label">
           <span className="label__title">Password</span>
-          <input type={passwordInputType} id="password-input" className="label__input" data-testid="password-input" ref={passwordInputRef} onInput={handleValid} />
+          <input type={passwordInputType} id="password-input" data-testid="password-input" ref={passwordInputRef} onInput={handleValid} />
         </label>
       </div>
       <button type="submit" className="user-form__button" data-testid={`${button.id}-button`} disabled={!isValid}>
