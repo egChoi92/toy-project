@@ -5,15 +5,17 @@ import { useNavigate } from "react-router-dom";
 
 export default function Todo() {
   const navigate = useNavigate();
+  const ACCESS_TOKEN = localStorage.getItem("access_token")
   
   useEffect(() => {
-    if (!localStorage.getItem("access_token")) {
+    if (!ACCESS_TOKEN) {
       navigate("/signin");
     }
   }, []);
 
-  return (<div>
-    <TodoList/>
-  </div>
+  return (
+    <div>
+      {ACCESS_TOKEN && <TodoList/>}
+    </div>
   );
 }
