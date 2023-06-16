@@ -12,13 +12,16 @@ export default function TodoUtil({ todo, setTodoList, isModify, setIsModify }) {
 
   const handleModify = async () => {
     const todo = todoInputRef.current.value;
+    toggleModifyMode();
+    if (!todo) {
+      return;
+    }
     const updateTodoData = {
       todo,
       isCompleted,
     };
     const repsonse = await updateTodoApi(todoId, updateTodoData);
     const newTodoItem = repsonse.data;
-    toggleModifyMode();
     setTodoList((prev) => {
       return prev.map((prevItem) => (prevItem.id === todoId ? newTodoItem : prevItem));
     });
