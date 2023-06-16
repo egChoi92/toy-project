@@ -32,8 +32,8 @@ export default function TodoItem({todo, setTodoList}) {
         <input type="checkbox" ref={checkboxRef} defaultChecked={todo.isCompleted} onChange={handleChecked}/>
         <span ref={todoTextRef}>{todo.todo}</span>
       </label>
-      <TodoModify/>
-      <TodoDelete/>
+      <TodoModify />
+      <TodoDelete id={todoId} setTodoList={setTodoList}/>
     </li>
   );
 }

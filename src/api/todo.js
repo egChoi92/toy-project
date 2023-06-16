@@ -40,3 +40,15 @@ export const updateTodoApi = async (id, requestBody) => {
     });
   return response;
 };
+
+export const deleteTodoApi = async (id) => {
+  const response = await apiClient
+    .delete(`/todos/${id}`)
+    .then((response) => {
+      return response;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  return response;
+};
