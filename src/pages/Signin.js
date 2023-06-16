@@ -12,7 +12,7 @@ export default function Login() {
     const response = await userApi("/auth/signin", userInputData);
     if (response.status === 200) {
       localStorage.setItem("access_token", response.data.access_token);
-      navigate("/todos");
+      navigate("/todo");
     }
   };
 
