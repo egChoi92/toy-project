@@ -1,7 +1,7 @@
 import { apiClient } from "api/client";
 
-export const userApi = async (apiUrl, apiData) => {
-  const response = await apiClient.post(apiUrl, apiData)
+export const userApi = async (apiUrl, requestBody) => {
+  const response = await apiClient.post(apiUrl, requestBody)
   .then((response)=> {
     return response;
   }).catch((error) => {

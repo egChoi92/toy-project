@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function TodoList() {
   const [todoList, setTodoList] = useState();
+  console.log('todoList: ', todoList);
 
   const getData = async () => {
     const response = await getTodoApi();
@@ -20,7 +21,7 @@ export default function TodoList() {
       <TodoCreate setTodoList={setTodoList} />
       <ul>
         {todoList?.map((todo) => (
-          <TodoItem key={todo.id} todo={todo} />
+          <TodoItem key={todo.id} todo={todo} setTodoList={setTodoList}/>
         ))}
       </ul>
     </section>
