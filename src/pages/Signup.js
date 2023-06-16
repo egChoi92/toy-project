@@ -33,5 +33,9 @@ export default function Signup() {
     },
   };
 
-  return <UserForm {...props} />;
+  return (
+    <div className="user">
+      <UserForm {...props} />
+    </div>
+  );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { userApi } from "api/user";
 import UserForm from "components/UserForm";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [userInputData, setUserInputData] = useState({});
@@ -31,5 +31,10 @@ export default function Login() {
     },
   };
 
-  return <UserForm {...props} />;
+  return (
+    <div className="user">
+      <UserForm {...props} />
+      <Link to={"/signup"} className="link-signup">회원가입</Link>
+    </div>
+  );
 }
