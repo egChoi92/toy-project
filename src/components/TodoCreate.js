@@ -1,16 +1,16 @@
+import { createTodoApi } from "api/todo";
 import React, { useRef } from "react";
 
-export default function TodoCreate({setTodoList}) {
+export default function TodoCreate({ setTodoList }) {
   const newTodoInputRef = useRef(null);
-  const handleCreate = () => {
-    const newTodo = newTodoInputRef.current.value;
-    setTodoList(prev => [...prev, {
-        "id": 1,
-        "todo": newTodo,
-        "isCompleted": false,
-        "userId": 1
-    }])
+
+  const handleCreate = async () => {
+    const todo = newTodoInputRef.current.value;
+    const response = await createTodoApi({ todo });
+    const newTodoItem = response.data;
+    setTodoList((prev) => [...prev, newTodoItem]);
   };
+  
   return (
     <div>
       <input data-testid="new-todo-input" ref={newTodoInputRef} />

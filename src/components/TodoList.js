@@ -4,14 +4,17 @@ import TodoItem from "components/TodoItem";
 import { useEffect, useState } from "react";
 
 export default function TodoList() {
-  const [todoList, setTodoList] = useState([]);
+  const [todoList, setTodoList] = useState();
+
   const getData = async () => {
     const response = await getTodoApi();
+    setTodoList(response.data);
   };
+
   useEffect(() => {
     getData();
-    console.log(todoList);
-  });
+  }, []);
+
   return (
     <section>
       <TodoCreate setTodoList={setTodoList} />
