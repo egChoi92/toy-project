@@ -6,6 +6,10 @@ export default function TodoCreate({ setTodoList }) {
 
   const handleCreate = async () => {
     const todo = newTodoInputRef.current.value;
+    if (!todo) {
+      newTodoInputRef.current.focus();
+      return;
+    }
     const response = await createTodoApi({ todo });
     const newTodoItem = response.data;
     setTodoList((prev) => [...prev, newTodoItem]);
