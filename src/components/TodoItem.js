@@ -40,10 +40,10 @@ export default function TodoItem({ todo, setTodoList }) {
 
   return (
     <li className="todo-list__item">
-      <label htmlFor="todo-checkbox" className="checkbox-label">
+      <label htmlFor={`todo-checkbox-${todoId}`} className="checkbox-label">
         <input
           type="checkbox"
-          id="todo-checkbox"
+          id={`todo-checkbox-${todoId}`}
           className="hidden"
           ref={checkboxRef}
           defaultChecked={todo.isCompleted}
