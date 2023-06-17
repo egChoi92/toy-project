@@ -32,12 +32,6 @@ export default function TodoItem({ todo, setTodoList }) {
     });
   };
 
-  // useEffect(() => {
-  //   if (isModify) {
-  //     todoInputRef.current.focus();
-  //   }
-  // }, [isModify])
-
   return (
     <li className="todo-list__item">
       <label htmlFor={`todo-checkbox-${todoId}`} className="checkbox-label">

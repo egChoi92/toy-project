@@ -1,13 +1,19 @@
 import DefaultLayout from "layout/DefaultLayout";
+import { useEffect } from "react";
+import { Routes, Route  } from "react-router-dom";
 import { BrowserRouter as Router } from "react-router-dom";
-import AppRoutes from "routes";
+import pages from "routes/pages";
 import "styles/App.scss";
 
 function App() {
   return (
-    <Router basename={process.env.PUBLIC_URL}>
+    <Router>
       <DefaultLayout>
-        <AppRoutes />
+        <Routes>
+          {pages.map((page) => (
+            <Route key={page.id} path={page.path} element={page.element} />
+          ))}
+        </Routes>
       </DefaultLayout>
     </Router>
   );
