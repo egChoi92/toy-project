@@ -23,13 +23,13 @@ export default function UserForm({ handleSubmit, setUserInputData, button }) {
 
   return (
     <form onSubmit={handleSubmit} className="user-form">
-      <div className="user-form__input">
+      <div className="user-form__box">
         <label htmlFor="email-input" className="user-label">
           <span className="user-label__title">Email</span>
           <input type="email" id="email-input" data-testid="email-input" ref={emailInputRef} onInput={handleValid} />
         </label>
-        <label htmlFor="password-input" className="label">
-          <span className="label__title">Password</span>
+        <label htmlFor="password-input" className="user-label">
+          <span className="user-label__title">Password</span>
           <input type={passwordInputType} id="password-input" data-testid="password-input" ref={passwordInputRef} onInput={handleValid} />
         </label>
       </div>
