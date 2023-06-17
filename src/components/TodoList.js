@@ -4,8 +4,8 @@ import TodoItem from "components/TodoItem";
 import { useEffect, useState } from "react";
 
 export default function TodoList() {
-  const [todoList, setTodoList] = useState();
-  console.log('todoList: ', todoList);
+  const [todoList, setTodoList] = useState([]);
+  console.log("todoList: ", todoList);
 
   const getData = async () => {
     const response = await getTodoApi();
@@ -19,11 +19,13 @@ export default function TodoList() {
   return (
     <div>
       <TodoCreate setTodoList={setTodoList} />
-      <ul className="todo-list">
-        {todoList?.map((todo) => (
-          <TodoItem key={todo.id} todo={todo} setTodoList={setTodoList}/>
-        ))}
-      </ul>
+      {todoList?.length > 0 && (
+        <ul className="todo-list">
+          {todoList.map((todo) => (
+            <TodoItem key={todo.id} todo={todo} setTodoList={setTodoList} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
