@@ -13,7 +13,6 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const response = await userApi("/auth/signup", userInputData);
-    console.log("response: ", response);
 
     if (response.status >= 200) {
       alert("회원가입에 성공했습니다. \n로그인 페이지로 이동합니다.");

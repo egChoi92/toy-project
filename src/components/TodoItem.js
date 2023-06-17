@@ -1,7 +1,7 @@
 import { updateTodoApi } from "api/todo";
 import TodoDelete from "components/TodoDelete";
 import TodoModify from "components/TodoModify";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 export default function TodoItem({ todo, setTodoList }) {
   const [isModify, setIsModify] = useState(false);
