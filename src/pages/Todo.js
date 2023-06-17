@@ -2,12 +2,12 @@ import TodoList from "components/TodoList";
 import React from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import 'styles/Todo.scss';
+import "styles/Todo.scss";
 
 export default function Todo() {
   const navigate = useNavigate();
-  const ACCESS_TOKEN = localStorage.getItem("access_token")
-  
+  const ACCESS_TOKEN = localStorage.getItem("access_token");
+
   useEffect(() => {
     if (!ACCESS_TOKEN) {
       navigate("/signin");
@@ -15,8 +15,12 @@ export default function Todo() {
   }, []);
 
   return (
-    <div className="todo">
-      {ACCESS_TOKEN && <TodoList/>}
-    </div>
+    <>
+      {ACCESS_TOKEN && (
+        <div className="todo">
+          <TodoList />
+        </div>
+      )}
+    </>
   );
 }
