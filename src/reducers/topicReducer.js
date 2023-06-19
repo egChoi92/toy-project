@@ -1,9 +1,10 @@
 export const reducer = (state, action) => {
   switch (action.type) {
     case "INIT": {
+      console.log(action);
       return {
         topicData: state.topicData ? [...state.topicData, ...action.data] : [],
-        selectedFilter: "전체",
+        selectedFilter: action.selectedFilter ? action.selectedFilter : "전체",
         searchWord: "",
       };
     }

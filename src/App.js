@@ -11,10 +11,11 @@ import ThemeStyles from "styles/ThemeStyle";
 export default function App() {
   const [state, dispatch] = useReducer(reducer, {});
 
-  const handleInit = useCallback((data) => {
+  const handleInit = useCallback((data, selectedFilter) => {
     dispatch({
       type: "INIT",
-      data
+      data,
+      selectedFilter
     })
   }, [])
 

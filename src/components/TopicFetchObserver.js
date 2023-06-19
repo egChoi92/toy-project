@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { TopicDispatchContext } from "context/Context";
+import { TopicDispatchContext, TopicStateContext } from "context/Context";
 import { useMemoContext } from "hooks/useMemoContext";
 import styled from "styled-components";
 
@@ -13,12 +13,15 @@ export default function TopicFetchObserver() {
     const [page, setPage] = useState(1);
     const observerRef = useRef(null);
     const dataEndRef = useRef(false);
+    const selectedFilter = useMemoContext(TopicStateContext, "selectedFilter");
+    console.log('selectedFilter: ', selectedFilter);
     const handleInit = useMemoContext(TopicDispatchContext, "handleInit");
+    const handleFilter = useMemoContext(TopicDispatchContext, "handleFilter");
   
     const fetchTopic = async (page) => {
       try {
         setIsLoading(true);
-        const response = await fetch(`http://localhost:4000/topics?page=${page}`, {
+        const response = await fetch(`http://localhost:4000/topics?page=${page}&filter=${selectedFilter}`, {
           header: {
             "Content-Type": "application/json",
           },
@@ -27,7 +30,7 @@ export default function TopicFetchObserver() {
         if (data.length === 0) {
           dataEndRef.current = true
         } else {
-          handleInit(data);
+          handleInit(data, selectedFilter);
         }
       } catch (error) {
         console.log('Topic Fetch Error:', error);
