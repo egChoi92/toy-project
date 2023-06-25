@@ -3,7 +3,6 @@ import { TopicStateContext } from "context/Context";
 import { useMemoContext } from "hooks/useMemoContext";
 import { useDebounce } from "hooks/useDebounce";
 import TopicItem from "components/TopicItem";
-import TopicFetchObserver from "components/TopicFetchObserver";
 import styled from "styled-components";
 
 const StyledList = styled.ul`
@@ -11,14 +10,12 @@ const StyledList = styled.ul`
   grid-template-columns: repeat(4, 1fr);
   gap: 40px 20px;
   margin-top: 20px;
+  min-height: 100vh;
 `;
 
 const Components = ({ topicData, selectedFilter, searchWord }) => {
-  
-
   const filteredList = useMemo(() => {
-    if (!selectedFilter || selectedFilter === "전체") return topicData;
-    const filterList = topicData.filter((data) => data.grade === selectedFilter);
+    const filterList = topicData?.filter((data) => data.grade === selectedFilter);
     return filterList;
   }, [selectedFilter, topicData]);
 
@@ -28,7 +25,7 @@ const Components = ({ topicData, selectedFilter, searchWord }) => {
     if (debounceSearchWord?.match(/^[가-힣a-zA-Z\s]+$/)) {
       return filteredList.filter((data) => {
         const title = data.title.toLowerCase();
-        return title.includes(debounceSearchWord);
+        return title.includes(debounceSearchWord.toLowerCase());
       });
     } else {
       return filteredList;
@@ -44,7 +41,6 @@ const Components = ({ topicData, selectedFilter, searchWord }) => {
           return <TopicItem key={data.idx} {...data} />;
         })}
       </StyledList>
-      <TopicFetchObserver/>
     </>
   );
 };

@@ -1,16 +1,17 @@
 export const reducer = (state, action) => {
   switch (action.type) {
     case "INIT": {
-      console.log(action);
       return {
-        topicData: state.topicData ? [...state.topicData, ...action.data] : [],
-        selectedFilter: action.selectedFilter ? action.selectedFilter : "전체",
+        topicData: state.topicData ? action.data : [],
+        selectedFilter: action.selectedFilter,
         searchWord: "",
+        page: 0,
       };
     }
     case "CHANGE_FILTER": {
       return {
         ...state,
+        page: 0,
         selectedFilter: action.selectedFilter,
       };
     }

@@ -1,7 +1,8 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { TopicDispatchContext, TopicStateContext } from "context/Context";
 import { useMemoContext } from "hooks/useMemoContext";
 import styled from "styled-components";
+import { topicFetch } from "api/topicFetch";
 
 const StyledFilterList = styled.ul`
   display: flex;
@@ -26,10 +27,6 @@ const StyledFilterButton = styled.button`
 `;
 const FilterList = [
   {
-    value: "전체",
-    title: "전체",
-  },
-  {
     value: "입문",
     title: "입문",
   },
@@ -52,6 +49,7 @@ const FilterList = [
 ];
 
 const Component = ({ selectedFilter, handleFilter }) => {
+
   return (
     <StyledFilterList>
       {FilterList.map((item, index) => (
@@ -75,6 +73,15 @@ const MemoizedComponent = (myComponent) => {
   const CustomMemoComponent = () => {
     const selectedFilter = useMemoContext(TopicStateContext, "selectedFilter");
     const handleFilter = useMemoContext(TopicDispatchContext, "handleFilter");
+    
+    const handleInit = useMemoContext(TopicDispatchContext, 'handleInit');
+    useEffect(() => {
+      (async () => {
+        const data = await topicFetch(1, selectedFilter);
+        handleInit(data, selectedFilter);
+      })();
+    }, [selectedFilter]);
+    
     const props = { selectedFilter, handleFilter };
     return <MemoComponent {...props} />;
   };

@@ -56,7 +56,7 @@ root
  ┣📦src
  ┃ ┣ 📂components
  ┃ ┃ ┣ 📜Header.js
- ┃ ┃ ┣ 📜TopicFetchObserver.js
+ ┃ ┃ ┣ 📜TopicObserver.js
  ┃ ┃ ┣ 📜TopicFilter.js
  ┃ ┃ ┣ 📜TopicImage.js
  ┃ ┃ ┣ 📜TopicItem.js

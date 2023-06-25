@@ -1,11 +1,11 @@
 import styled from "styled-components";
 
-const StyledHeader = styled.header`
+const StyledHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
-export default function Header({ children }) {
+export default function TopicHeader({ children }) {
   return <StyledHeader>{children}</StyledHeader>;
 }

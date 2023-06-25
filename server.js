@@ -6,9 +6,11 @@ const middlewares = jsonServer.defaults();
 server.use((req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   const { page, filter } = req.query;
-  const perPage = 12;
+  const perPage = 8;
   const posts = router.db.get("topics").value();
-  const filteredPosts = posts.filter(post => post.title.includes(filter))
+  const filteredPosts = posts.filter(post => {
+    return post.grade === filter;
+  })
 
   if (page) {
     const startIndex = (page - 1) * perPage;
