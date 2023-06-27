@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo } from "react";
 import { TopicDispatchContext, TopicStateContext } from "context/Context";
 import { useMemoContext } from "hooks/useMemoContext";
 import styled from "styled-components";
@@ -48,7 +48,18 @@ const FilterList = [
   },
 ];
 
-const Component = ({ selectedFilter, handleFilter }) => {
+const Component = ({pagination, selectedFilter, handleFilter }) => {
+  const handleClick = async (e) => {
+    const value = e.target.value;
+    
+    const filterPagination = {
+      ...pagination,
+      [value]: 1,
+    };
+
+    const data = await topicFetch(1, value)
+    handleFilter(data, value, filterPagination)
+  }
 
   return (
     <StyledFilterList>
@@ -57,7 +68,7 @@ const Component = ({ selectedFilter, handleFilter }) => {
           <StyledFilterButton
             type="button"
             className={item.value === selectedFilter ? "active" : ""}
-            onClick={(e) => handleFilter(e.target.value)}
+            onClick={e => handleClick(e)}
             value={item.value}
           >
             {item.title}
@@ -71,18 +82,11 @@ const Component = ({ selectedFilter, handleFilter }) => {
 const MemoizedComponent = (myComponent) => {
   const MemoComponent = memo(myComponent);
   const CustomMemoComponent = () => {
+    const pagination = useMemoContext(TopicStateContext, "pagination");
     const selectedFilter = useMemoContext(TopicStateContext, "selectedFilter");
     const handleFilter = useMemoContext(TopicDispatchContext, "handleFilter");
     
-    const handleInit = useMemoContext(TopicDispatchContext, 'handleInit');
-    useEffect(() => {
-      (async () => {
-        const data = await topicFetch(1, selectedFilter);
-        handleInit(data, selectedFilter);
-      })();
-    }, [selectedFilter]);
-    
-    const props = { selectedFilter, handleFilter };
+    const props = { pagination, selectedFilter, handleFilter };
     return <MemoComponent {...props} />;
   };
   return CustomMemoComponent;

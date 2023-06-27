@@ -10,7 +10,6 @@ const StyledList = styled.ul`
   grid-template-columns: repeat(4, 1fr);
   gap: 40px 20px;
   margin-top: 20px;
-  min-height: 100vh;
 `;
 
 const Components = ({ topicData, selectedFilter, searchWord }) => {

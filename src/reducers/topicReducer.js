@@ -1,18 +1,24 @@
+
+const equalArray = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const reducer = (state, action) => {
   switch (action.type) {
     case "INIT": {
+      const data = state.topicData ? [...state.topicData, ...action.data] : []
+      const equal = equalArray(state.topicData, action.data);
       return {
-        topicData: state.topicData ? action.data : [],
+        pagination: action.pagination,
+        topicData: equal ? action.data : data,
         selectedFilter: action.selectedFilter,
         searchWord: "",
-        page: 0,
+
       };
     }
     case "CHANGE_FILTER": {
       return {
-        ...state,
-        page: 0,
+        pagination: action.pagination,
+        topicData: action.data,
         selectedFilter: action.selectedFilter,
+        searchWord: "",
       };
     }
     case "SEARCH": {
