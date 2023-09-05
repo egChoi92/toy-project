@@ -1,73 +1,97 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
     <head>
-        <meta charset='UTF-8' />
-        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Collaborative Text Editor</title>
         <style>
+            body {
+                font-size: 16px;
+            }
             #content-wrapper {
                 display: flex;
             }
-            #editor {
+
+            #editor-box {
+                position: relative;
                 flex: 0.6;
                 padding: 10px;
                 border: 1px solid #ddd;
+            }
+            #cursor-wrapper {
+                position: absolute;
+                top: 12px;
+                width: 100%;
+                height: 100%;
+            }
+            #cursor-wrapper > i {
+                position: absolute;
+                padding-bottom: 5px;
+                border-left: 1px solid #000;
+                font-size: 10px;
+                animation: cursor 1s linear infinite;
             }
             #sidebar {
                 flex: 0.4;
                 padding: 10px;
             }
+            @keyframes cursor {
+                100% {
+                    border-color: transparent;
+                }
+            }
         </style>
     </head>
     <body>
-        <div id='editor-container'>
-            <button id='join-button' onclick='showNicknameInput()'>
+        <div id="editor-container">
+            <button id="join-button" onclick="handleRoomCreate()">
                 방 만들기
             </button>
-            <div id='nickname-layer' style='display: none'>
-                <label for='nickname'>닉네임 설정</label>
+            <div id="nickname-layer" style="display: none">
+                <label for="nickname">닉네임 설정</label>
                 <input
-                    type='text'
-                    id='nickname'
-                    placeholder='닉네임을 입력해주세요'
+                    type="text"
+                    id="nickname"
+                    placeholder="닉네임을 입력해주세요"
                 />
-                <button type='button' onclick='joinEditingRoom()'>입장</button>
+                <button type="button" onclick="handleRoomJoin()">입장</button>
             </div>
-            <div id='content' style='display: none'>
-                <div id='content-wrapper'>
-                    <div id='editor' contenteditable='true'></div>
-                    <div id='sidebar'>
-                        <div id='sidebar-header'>참여자 목록</div>
-                        <ul id='member-list'></ul>
-                        <div id='notification'></div>
+            <div id="content" style="display: none">
+                <div id="content-wrapper">
+                    <div id="editor-box">
+                        <div id="editor" contenteditable="true"></div>
+                        <div id="cursor-wrapper"></div>
+                    </div>
+                    <div id="sidebar">
+                        <div id="sidebar-header">참여자 목록</div>
+                        <ul id="member-list"></ul>
+                        <div id="notification"></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <script>
-            const nicknameLayerDiv = document.getElementById('nickname-layer');
-            const nicknameInput = document.getElementById('nickname');
-            const joinButton = document.getElementById('join-button');
-            const contentDiv = document.getElementById('content');
-            const editorDiv = document.getElementById('editor');
-            const memberList = document.getElementById('member-list');
-            const notificationDiv = document.getElementById('notification');
+            const nicknameLayerDiv = document.getElementById("nickname-layer");
+            const nicknameInput = document.getElementById("nickname");
+            const joinButton = document.getElementById("join-button");
+            const contentDiv = document.getElementById("content");
+            const editorDiv = document.getElementById("editor");
+            const cursorWrapperDiv = document.getElementById("cursor-wrapper");
+            const memberList = document.getElementById("member-list");
+            const notificationDiv = document.getElementById("notification");
             const storageFunctionObject = {
-                editor: () => getContentFromLocalStorage('editor')(updateEditor),
-                member: () => getContentFromLocalStorage('member')(appendMember),
-                notification: () => getContentFromLocalStorage('member')(showNotification),
+                editor: () => handleAfterLocalStorage("editor")(updateEditor),
+                member: () => handleAfterLocalStorage("member")(updateMember),
+                notification: () =>
+                    handleAfterLocalStorage("member")(updateNotification),
+                cursor: () => handleAfterLocalStorage("member")(updateCursor),
             };
 
             let myNickname = null;
-            let myId = 0
+            let myId = 0;
 
-            const setContentFromLocalStorage = (id) => {
-                const content = document.querySelector(`#${id}`).innerHTML;
-                localStorage.setItem(id, content);
-            }
-
-            const getContentFromLocalStorage = (id) => {
+            const handleAfterLocalStorage = (id) => {
                 const localStorageData = localStorage.getItem(id);
                 let parsedValue;
                 try {
@@ -78,82 +102,128 @@
                 return function (callback) {
                     callback(parsedValue);
                 };
-            }
-
-            const appendMember = (memberData) => {
-                memberList.innerHTML = '';
-                memberData.forEach((member) => {
-                    const memberElement = document.createElement('li');
-                    memberElement.textContent = member.nickname;
-                    if (member.nickname === myNickname) {
-                        memberElement.style.fontWeight = 'bold';
-                    }
-                    memberList.appendChild(memberElement);
-                });
+            };
+            function bytesToPx(inputString, fontSize) {
+                const bytesToPixelsFactor = 0.1;
+                const byteLength = new TextEncoder().encode(inputString).length;
+                const pxValue = byteLength * bytesToPixelsFactor * fontSize;
+                return pxValue.toFixed(2) + "px";
             }
 
             const updateEditor = (text) => {
                 editorDiv.innerHTML = text;
-            }
+            };
 
-            const showNotification = (memberData) => {
-                const memberLength = memberData.length - 1
-                const newMember = memberData.find((member) => member.id === myId);
+            const updateMember = (memberData) => {
+                memberList.innerHTML = "";
+                cursorWrapperDiv.innerHTML = "";
+                memberData.forEach((member) => {
+                    const { id, nickname } = member;
+                    const memberElement = document.createElement("li");
+                    memberElement.textContent = nickname;
+                    if (nickname === myNickname) {
+                        memberElement.style.fontWeight = "bold";
+                    }
+                    memberList.appendChild(memberElement);
+                    const cursorElement = document.createElement("i");
+                    cursorElement.textContent = nickname;
+                    cursorElement.id = `cursor-${id}`;
+                    cursorWrapperDiv.appendChild(cursorElement);
+                });
+            };
+
+            const updateNotification = (memberData) => {
+                const memberLength = memberData.length - 1;
+                const newMember = memberData.find(
+                    (member) => member.id === myId
+                );
                 if (newMember) {
-                    notificationDiv.innerHTML = `${memberData[memberLength].nickname}님이 입장하였습니다.`;
+                    notificationDiv.textContent = `${memberData[memberLength].nickname}님이 입장하였습니다.`;
                     setTimeout(() => {
-                        notificationDiv.innerHTML = ''
-                    }, 3000)
+                        notificationDiv.textContent = "";
+                    }, 3000);
                 }
-            }
+            };
 
-            const showNicknameInput = () => {
-                nicknameLayerDiv.style.display = 'block';
-                joinButton.style.display = 'none';
-            }
+            const updateCursor = (memberData) => {
+                const fontSize = getComputedStyle(document.body).fontSize;
+                const newMember = memberData.find(
+                    (member) => member.id === myId
+                );
 
-            const joinEditingRoom = () => {
-                const savedMember = JSON.parse(localStorage.getItem('member')) || [];
+                console.log("editorDiv.textContent: ", editorDiv.textContent);
+                const x = bytesToPx(editorDiv.textContent, 16);
+                console.log("x: ", x);
+                document
+                    .querySelector(`#cursor-${newMember.id}`)
+                    .style.setProperty("left", x);
+            };
+
+            const handleRoomCreate = () => {
+                nicknameLayerDiv.style.display = "block";
+                joinButton.style.display = "none";
+            };
+
+            const handleRoomJoin = () => {
+                const savedMemberData =
+                    JSON.parse(localStorage.getItem("member")) || [];
                 const nickname = nicknameInput.value.trim();
                 if (!nickname) return;
 
-                const isSameNickname = savedMember.find(member => member.nickname === nickname)
-                if (isSameNickname) return alert('같은 닉네임이 있습니다.')
+                const isSameNickname = savedMemberData.find(
+                    (member) => member.nickname === nickname
+                );
+                if (isSameNickname) return alert("같은 닉네임이 있습니다.");
 
-                nicknameLayerDiv.style.display = 'none';
-                contentDiv.style.display = 'block';
+                nicknameLayerDiv.style.display = "none";
+                contentDiv.style.display = "block";
 
                 myNickname = nickname;
-                myId = savedMember.length;
+                myId = savedMemberData.length;
 
-                savedMember.push({ id: myId, nickname, cursorPosition: 0 });
-                localStorage.setItem('member', JSON.stringify(savedMember));
-                localStorage.setItem('notification', nickname);
+                savedMemberData.push({ id: myId, nickname, cursorOffset: 0 });
+                localStorage.setItem("member", JSON.stringify(savedMemberData));
+                localStorage.setItem("notification", nickname);
 
-                appendMember(savedMember);
-                storageFunctionObject['editor']();
-            }
+                updateMember(savedMemberData);
+                storageFunctionObject["editor"]();
+            };
 
-            const getCaretPosition = () => {
+            const getCursorOffset = () => {
                 const sel = window.getSelection();
                 if (sel.rangeCount === 0) return 0;
                 const range = sel.getRangeAt(0);
                 const preCaretRange = range.cloneRange();
                 preCaretRange.selectNodeContents(editor);
                 preCaretRange.setEnd(range.endContainer, range.endOffset);
-                
-                return preCaretRange.toString().length;
-            }
 
-            editorDiv.addEventListener('keyup', () => {
-                const caretPosition = getCaretPosition();
-                setContentFromLocalStorage('editor');
+                return preCaretRange.toString().length;
+            };
+
+            editorDiv.addEventListener("keyup", () => {
+                const cursorOffset = getCursorOffset();
+                const savedMemberData = JSON.parse(
+                    localStorage.getItem("member")
+                );
+                const cursorData = savedMemberData.map((member) => {
+                    if (member.id === myId) {
+                        return {
+                            ...member,
+                            cursorOffset,
+                        };
+                    } else {
+                        return member;
+                    }
+                });
+                localStorage.setItem("cursor", JSON.stringify(cursorData));
+
+                const currentEditorText = editorDiv.innerHTML;
+                localStorage.setItem("editor", currentEditorText);
             });
 
-            window.addEventListener('storage', function (event) {
+            window.addEventListener("storage", function (event) {
                 if (event.key) storageFunctionObject[event.key]();
             });
-
         </script>
     </body>
 </html>
