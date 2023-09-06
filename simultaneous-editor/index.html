@@ -93,9 +93,9 @@
                 newMember: {
                     handler: () => handleAfterLocalStorage("newMember")(updateNotification ),
                 },
-                currentEditorialMember: {
-                    getData: () => JSON.parse(localStorage.getItem("currentEditorialMember")) || null,
-                    handler: () => handleAfterLocalStorage("currentEditorialMember")(updateCursor),
+                editorialMember: {
+                    getData: () => JSON.parse(localStorage.getItem("editorialMember")) || [],
+                    handler: () => handleAfterLocalStorage("editorialMember")(updateCursor),
                 },
             };
             const initialCursorOffset = { x: 0, y: 0 };
@@ -137,17 +137,26 @@
                 return { x, y };
             };
 
+            const getCursorIcon = (id) => {
+                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+                const cursorIcon = document.querySelector(`#cursor-${id}`);
+                if (cursorIcon) {
+                    cursorIcon.style.display = "block";
+                    return cursorIcon
+                }
+            }
+
             const updateEditor = (value) => {
                 editorTextarea.value = value;
             };
 
             const updateMember = (memberData) => {
-                if (!memberData) {
+                if (memberData.length <= 0) {
                     location.href = location.origin + location.pathname;
                 }
 
                 const { myId, myNickname } = getHistoryState();
-                console.log('myId: ', myId);
                 memberList.innerHTML = "";
                 cursorWrapperDiv.innerHTML = "";
 
@@ -177,25 +186,33 @@
                     notificationDiv.textContent = `${newMemberData.nickname}님이 입장하였습니다.`;
                     setTimeout(() => {
                         notificationDiv.textContent = "";
-                    }, 4000);
+                    }, 2000);
                 }
             };
 
             const updateCursor = (editorialMemberData) => {
                 const { myId } = getHistoryState();
-                const { id, cursorOffset, prevCursorOffset } = editorialMemberData;
+                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+                editorialMemberData.map((editorialMember) => {
 
-                if (myId === id) return;
-        
-                const cursorIdArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
-                cursorIdArray.map((cursorId) => cursorId.style.display = "none");
-                const cursorId = document.querySelector(`#cursor-${id}`);
-                cursorId.style.display = "block";
+                    const { id, cursorOffset, prevCursorOffset, typing } = editorialMember;
 
-                const y = cursorOffset.y;
-                const x = y - prevCursorOffset.y > 0 && cursorOffset.x > 0 ? 0 : cursorOffset.x;
-                cursorId.style.top = `${15 * y}px`;
-                cursorId.style.left = `${7.2 * x}px`;
+                    if (myId === id) return;
+
+                    const y = cursorOffset.y;
+                    const x = y - prevCursorOffset.y > 0 && cursorOffset.x > 0 ? 0 : cursorOffset.x;
+
+                    const cursorIcon = document.querySelector(`#cursor-${id}`);
+                    if (typing) {
+                        
+                        console.log('cursorIcon: ', cursorIcon);
+                        cursorIcon.style.display = "block";
+                        cursorIcon.style.top = `${15 * y}px`;
+                        cursorIcon.style.left = `${7.2 * x}px`;
+                    }
+
+                })
             };
 
             const renderEditor = () => {
@@ -207,8 +224,8 @@
 
                 updateMember(storageObject.member.getData());
 
-                if (storageObject.currentEditorialMember.getData()) {
-                    storageObject.currentEditorialMember.handler();
+                if (storageObject.editorialMember.getData().length > 0) {
+                    storageObject.editorialMember.handler();
                 }
             };
 
@@ -245,6 +262,7 @@
 
             const handleRoomJoin = () => {
                 const savedMemberData = storageObject.member.getData();
+                const savedEditorialMemberData = storageObject.editorialMember.getData();
                 const nickname = nicknameInput.value.trim();
 
                 if (!nickname) return;
@@ -262,36 +280,54 @@
                     id: myId,
                     nickname,
                 };
+                const newEditorialMember = {
+                    ...newMemberData,
+                    prevCursorOffset: initialCursorOffset,
+                    cursorOffset: initialCursorOffset,
+                }
                 savedMemberData.push(newMemberData);
+                savedEditorialMemberData.push(newEditorialMember);
 
                 history.pushState({ data: newMemberData }, "", `?id=${myId}&nickname=${nickname}`);
 
                 localStorage.setItem("member", JSON.stringify(savedMemberData));
                 localStorage.setItem("newMember", JSON.stringify(newMemberData));
+                localStorage.setItem("editorialMember", JSON.stringify(savedEditorialMemberData));
 
                 renderEditor();
             };
 
             const handleEditorUpdate = (event) => {
                 const { myId, myNickname } = getHistoryState();
-                const savedEditorialMemberData = storageObject.currentEditorialMember.getData();
-
-                const cursorIdArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
-                cursorIdArray.map((cursorId) => cursorId.style.display = "none");
+                const savedEditorialMemberData = storageObject.editorialMember.getData();
                 const editorValue = editorTextarea.value;
 
-                const prevCursorOffset = savedEditorialMemberData
-                    ? savedEditorialMemberData.cursorOffset
-                    : initialCursorOffset;
-                const newCursorOffset = getCursorOffset(editorValue, getCursorPosition());
-                const editorialMemberData = {
-                    id: myId,
-                    nickname: myNickname,
-                    prevCursorOffset,
-                    cursorOffset: newCursorOffset,
-                };
+                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+                savedEditorialMemberData.map((savedEditorialMember) => {
+                    const { id, cursorOffset } = savedEditorialMember;
+                    
+                    const newPrevCursorOffset = cursorOffset;
+                    const newCursorOffset = getCursorOffset(editorValue, getCursorPosition());
+                    savedEditorialMember.typing = false;
+                    const newEditorialMember = {
+                        id: myId,
+                        nickname: myNickname,
+                        prevCursorOffset: newPrevCursorOffset,
+                        cursorOffset: newCursorOffset,
+                        typing: true,
+                    }
+                    if (id === myId) {
+                        for (const key in savedEditorialMember) {
+                            if (savedEditorialMember.hasOwnProperty(key)) {
+                                savedEditorialMember[key] = newEditorialMember[key];
+                            }
+                        }
+                    }
 
-                localStorage.setItem("currentEditorialMember", JSON.stringify(editorialMemberData));
+                })
+
+                localStorage.setItem("editorialMember", JSON.stringify(savedEditorialMemberData));
 
                 if (event.type !== "click") {
                     localStorage.setItem("editor", editorValue);
