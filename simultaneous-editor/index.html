@@ -11,7 +11,6 @@
             #content-wrapper {
                 display: flex;
             }
-
             #editor-box {
                 position: relative;
                 flex: 0.6;
@@ -19,7 +18,9 @@
                 border: 1px solid #ddd;
             }
             #editor {
+                width: 100%;
                 height: 100%;
+                border: none;
             }
             #cursor-wrapper {
                 position: absolute;
@@ -32,10 +33,10 @@
                 position: absolute;
                 padding: 0 2px;
                 border-left: 1px solid #000;
-                font-size: 10px;
-                animation: cursor 1s linear infinite;
-                white-space: nowrap;
                 background: #ccc;
+                font-size: 10px;
+                white-space: nowrap;
+                animation: cursor 1s linear infinite;
             }
             #sidebar {
                 flex: 0.4;
@@ -48,18 +49,13 @@
             }
         </style>
     </head>
+
     <body>
         <div id="editor-container">
-            <button id="join-button" onclick="handleRoomCreate()">
-                방 만들기
-            </button>
+            <button id="join-button" onclick="handleRoomCreate()">방 만들기</button>
             <div id="nickname-layer" style="display: none">
                 <label for="nickname">닉네임 설정</label>
-                <input
-                    type="text"
-                    id="nickname"
-                    placeholder="닉네임을 입력해주세요"
-                />
+                <input type="text" id="nickname" placeholder="닉네임을 입력해주세요" />
                 <button type="button" onclick="handleRoomJoin()">입장</button>
             </div>
             <div id="content" style="display: none">
@@ -87,81 +83,156 @@
             const memberList = document.getElementById("member-list");
             const notificationDiv = document.getElementById("notification");
             const storageObject = {
-                editor: () => handleAfterLocalStorage("editor")(updateEditor),
-                member: () => handleAfterLocalStorage("member")(updateMember),
-                newMember: () =>
-                    handleAfterLocalStorage("newMember")(updateNotification),
-                currentEditorialMember: () =>
-                    handleAfterLocalStorage("currentEditorialMember")(updateCursor),
+                editor: {
+                    handler: () => handleAfterLocalStorage("editor")(updateEditor),
+                },
+                member: {
+                    getData: () => JSON.parse(localStorage.getItem("member")) || [],
+                    handler: () => handleAfterLocalStorage("member")(updateMember),
+                },
+                newMember: {
+                    handler: () => handleAfterLocalStorage("newMember")(updateNotification ),
+                },
+                currentEditorialMember: {
+                    getData: () => JSON.parse(localStorage.getItem("currentEditorialMember")) || null,
+                    handler: () => handleAfterLocalStorage("currentEditorialMember")(updateCursor),
+                },
             };
-            const initialCursorOffset = { x: 0, y: 0}
+            const initialCursorOffset = { x: 0, y: 0 };
 
-            let myNickname = null;
-            let myId = 0;
+            const getHistoryState = () => {
+                const historyState = history.state;
+                const urlParams = new URL(location.href).searchParams
+                const myId = historyState ? historyState.data.id : Number(urlParams.get('id'));
+                const myNickname = historyState ? historyState.data.nickname : urlParams.get('nickname');
+                    
+                return { myId, myNickname };
+            };
+
+            const getByte = (string) => {
+                return string
+                    .split("")
+                    .map((s) => s.charCodeAt(0))
+                    .reduce((prev, c) => prev + (c === 10 ? 2 : c >> 7 ? 2 : 1), 0);
+            }
+
+            function getCursorPosition() {
+                if (editorTextarea.selectionStart !== undefined) {
+                    return editorTextarea.selectionStart;
+                } else if (document.selection) {
+                    editorTextarea.focus();
+                    var selection = document.selection.createRange();
+                    selection.moveStart("character", -editorTextarea.value.length);
+                    
+                    return selection.text.length;
+                }
+            }
+
+            const getCursorOffset = (string, rows) => {
+                const subStr = string.substr(0, rows);
+                const splitString = subStr.split("\n");
+                const y = splitString.length - 1;
+                const x = getByte(splitString.pop())
+
+                return { x, y };
+            };
 
             const updateEditor = (value) => {
-                if (!value) return
                 editorTextarea.value = value;
             };
 
             const updateMember = (memberData) => {
+                if (!memberData) {
+                    location.href = location.origin + location.pathname;
+                }
+
+                const { myId, myNickname } = getHistoryState();
+                console.log('myId: ', myId);
                 memberList.innerHTML = "";
                 cursorWrapperDiv.innerHTML = "";
+
                 memberData.forEach((member) => {
                     const { id, nickname } = member;
                     const memberElement = document.createElement("li");
                     memberElement.textContent = nickname;
-                    if (nickname === myNickname) {
+
+                    console.log('nickname === myNickname: ', id === myId);
+                    if (id === myId) {
                         memberElement.style.fontWeight = "bold";
                     }
                     memberList.appendChild(memberElement);
-                    
+
                     const cursorElement = document.createElement("i");
+                    cursorElement.style.display = "none";
                     cursorElement.textContent = nickname;
                     cursorElement.id = `cursor-${id}`;
+
                     if (id !== myId) cursorWrapperDiv.appendChild(cursorElement);
                 });
             };
 
             const updateNotification = (newMemberData) => {
-                notificationDiv.textContent = `${newMemberData.nickname}님이 입장하였습니다.`;
-                setTimeout(() => {
-                    notificationDiv.textContent = "";
-                }, 3000);
+                const { myId } = getHistoryState()
+                if (myId !== newMemberData.id) {
+                    notificationDiv.textContent = `${newMemberData.nickname}님이 입장하였습니다.`;
+                    setTimeout(() => {
+                        notificationDiv.textContent = "";
+                    }, 4000);
+                }
             };
-            
-            function getByte(string) {
-                
-                const removeNewlineString = string.replaceAll('\n', '')
-                
-                return removeNewlineString
-                    .split('')
-                    .map(s => s.charCodeAt(0))
-                    .reduce((prev, c) => (prev + ((c === 10) ? 2 : ((c >> 7) ? 2 : 1))), 0);
-            }
 
-            const updateCursor = (currentEditorialMemberData) => {
-                const {id, cursorOffset, prevCursorOffset} = currentEditorialMemberData
-                const cursorId = document.querySelector(`#cursor-${id}`)
-                
-                console.log('cursorOffset.y: ', cursorOffset.y);
-                const x = cursorOffset.y - prevCursorOffset.y > 0 && cursorOffset.x > 0 
-                    ? 0 
-                    : cursorOffset.x
+            const updateCursor = (editorialMemberData) => {
+                const { myId } = getHistoryState();
+                const { id, cursorOffset, prevCursorOffset } = editorialMemberData;
 
-                cursorId.style.top = `${16 * (cursorOffset.y)}px`;
+                if (myId === id) return;
+        
+                const cursorIdArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIdArray.map((cursorId) => cursorId.style.display = "none");
+                const cursorId = document.querySelector(`#cursor-${id}`);
+                cursorId.style.display = "block";
+
+                const y = cursorOffset.y;
+                const x = y - prevCursorOffset.y > 0 && cursorOffset.x > 0 ? 0 : cursorOffset.x;
+                cursorId.style.top = `${15 * y}px`;
                 cursorId.style.left = `${7.2 * x}px`;
+            };
 
+            const renderEditor = () => {
+                joinButton.style.display = "none";
+                nicknameLayerDiv.style.display = "none";
+                contentDiv.style.display = "block";
+
+                storageObject.editor.handler();
+
+                updateMember(storageObject.member.getData());
+
+                if (storageObject.currentEditorialMember.getData()) {
+                    storageObject.currentEditorialMember.handler();
+                }
+            };
+
+            const router = () => {
+                const searchParams = location.search;
+
+                if (searchParams) {
+                    renderEditor();
+                } else {
+                    contentDiv.style.display = "none";
+                    joinButton.style.display = "block";
+                }
             };
 
             const handleAfterLocalStorage = (storageKey) => {
                 const localStorageData = localStorage.getItem(storageKey);
+
                 let parsedValue;
                 try {
                     parsedValue = JSON.parse(localStorageData);
                 } catch (error) {
                     parsedValue = localStorageData;
                 }
+
                 return function (callback) {
                     callback(parsedValue);
                 };
@@ -173,77 +244,75 @@
             };
 
             const handleRoomJoin = () => {
-                const savedMemberData =
-                    JSON.parse(localStorage.getItem("member")) || [];
+                const savedMemberData = storageObject.member.getData();
                 const nickname = nicknameInput.value.trim();
+
                 if (!nickname) return;
 
-                const isSameNickname = savedMemberData.find(
+                const sameNickname = savedMemberData.find(
                     (member) => member.nickname === nickname
                 );
-                if (isSameNickname) return alert("같은 닉네임이 있습니다.");
 
-                nicknameLayerDiv.style.display = "none";
-                contentDiv.style.display = "block";
-
-                myNickname = nickname;
-                myId = savedMemberData.length;
-
-                savedMemberData.push({ id: myId, nickname, prevCursorOffset: initialCursorOffset, cursorOffset: initialCursorOffset });
-                localStorage.setItem("member", JSON.stringify(savedMemberData));
-                localStorage.setItem("newMember", JSON.stringify({id: myId,nickname }));
-
-                updateMember(savedMemberData);
-                storageObject.editor();
-            };
-
-            const handleEditorUpdate = async (event) => {
-
-                const savedCursorData = JSON.parse(localStorage.getItem("member"))
-                const editorValue = editorTextarea.value;
-
-                const selection = editorTextarea.selectionEnd;
-                const newlineLength = editorValue.split('\n').length - 1;
-
-                const cursorOffset = {
-                    x: getByte(editorValue),
-                    y: newlineLength,
-                    // y: newlineLength > selection ? selection : newlineLength,
+                if (sameNickname) {
+                    alert("같은 닉네임이 있습니다.");
                 }
 
+                const myId = savedMemberData.length;
+                const newMemberData = {
+                    id: myId,
+                    nickname,
+                };
+                savedMemberData.push(newMemberData);
 
-                const currentEditorialMemberData = await(() => {
-                    const savedCurrentEditorialMemberData = JSON.parse(localStorage.getItem("currentEditorialMember"));
-                    const prevCursorOffset = savedCurrentEditorialMemberData 
-                        ? savedCurrentEditorialMemberData.cursorOffset 
-                        : initialCursorOffset;
-                    return {
-                        id: myId, 
-                        nickname: myNickname, 
-                        prevCursorOffset,
-                        cursorOffset,
-                    }
-                })()
+                history.pushState({ data: newMemberData }, "", `?id=${myId}&nickname=${nickname}`);
 
-                console.log(currentEditorialMemberData);
-                localStorage.setItem("currentEditorialMember", JSON.stringify(currentEditorialMemberData));
+                localStorage.setItem("member", JSON.stringify(savedMemberData));
+                localStorage.setItem("newMember", JSON.stringify(newMemberData));
 
-                if (event.type === 'keyup') localStorage.setItem("editor", editorValue);
-            }
+                renderEditor();
+            };
 
-            // editorTextarea.addEventListener("input", function(event) {
-            //     console.log('input');
-            //     handleEditorUpdate(event)
-            // });
+            const handleEditorUpdate = (event) => {
+                const { myId, myNickname } = getHistoryState();
+                const savedEditorialMemberData = storageObject.currentEditorialMember.getData();
 
-            editorTextarea.addEventListener("keyup", function(event) {
-                console.log('keyup');
-                handleEditorUpdate(event)
+                const cursorIdArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIdArray.map((cursorId) => cursorId.style.display = "none");
+                const editorValue = editorTextarea.value;
+
+                const prevCursorOffset = savedEditorialMemberData
+                    ? savedEditorialMemberData.cursorOffset
+                    : initialCursorOffset;
+                const newCursorOffset = getCursorOffset(editorValue, getCursorPosition());
+                const editorialMemberData = {
+                    id: myId,
+                    nickname: myNickname,
+                    prevCursorOffset,
+                    cursorOffset: newCursorOffset,
+                };
+
+                localStorage.setItem("currentEditorialMember", JSON.stringify(editorialMemberData));
+
+                if (event.type !== "click") {
+                    localStorage.setItem("editor", editorValue);
+                }
+            };
+
+            editorTextarea.addEventListener("click", function (event) {
+                handleEditorUpdate(event);
+            });
+
+            editorTextarea.addEventListener("keyup", function (event) {
+                handleEditorUpdate(event);
             });
 
             window.addEventListener("storage", function (event) {
-                if (event.key) storageObject[event.key]();
+                if (event.key) storageObject[event.key].handler();
             });
+
+            window.addEventListener("load", router);
+
+            window.addEventListener("popstate", router);
         </script>
     </body>
 </html>
