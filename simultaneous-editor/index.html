@@ -5,15 +5,49 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Collaborative Text Editor</title>
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
             body {
+                height: 100vh;
                 font-size: 16px;
+            }
+            button, input {
+                padding: 10px 20px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: #eee;
+                line-height: 14px;
+                cursor: pointer;
+            }
+            input {
+                background-color: #fff;
+            }
+            label {
+                position: absolute;
+                clip: rect(0, 0, 0, 0);
+            }
+            #editor-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+            }
+            #content {
+                width: 96%;
+                max-width: 800px;
+                height: 50%;
+                margin: auto;
             }
             #content-wrapper {
                 display: flex;
+                height: 100%;
             }
             #editor-box {
                 position: relative;
-                flex: 0.6;
+                flex: 0.7;
                 padding: 10px;
                 border: 1px solid #ddd;
             }
@@ -33,14 +67,48 @@
                 position: absolute;
                 padding: 0 2px;
                 border-left: 1px solid #000;
-                background: #ccc;
+                background: rgb(255, 0, 0, 0.8);
                 font-size: 10px;
+                color: #fff;
                 white-space: nowrap;
                 animation: cursor 1s linear infinite;
             }
             #sidebar {
-                flex: 0.4;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                flex: 0.3;
+                border: 1px solid #ddd;
+                background-color: #fafafa;
+                text-align: center;
+            }
+            #sidebar-header {
+                padding: 15px;
+                background-color: #eee;
+            }
+            #member-list {
+                flex: 1;
+                overflow: auto;
                 padding: 10px;
+                border-top: 1px solid #ddd;
+                list-style: none;
+                text-align: left;
+            }
+            #member-list > li {
+                margin-top: 10px;
+                padding: 0 10px;
+            }
+            #notification {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                padding: 10px 15px;
+                background-color: #eee;
+                font-size: 13px;
+            }
+            #notification:empty {
+                display: none;
             }
             @keyframes cursor {
                 100% {
@@ -100,11 +168,16 @@
             };
             const initialCursorOffset = { x: 0, y: 0 };
 
+            const removeCursor = () => {
+                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+            }
+
             const getHistoryState = () => {
                 const historyState = history.state;
                 const urlParams = new URL(location.href).searchParams
                 const myId = historyState ? historyState.data.id : Number(urlParams.get('id'));
-                const myNickname = historyState ? historyState.data.nickname : urlParams.get('nickname');
+                const myNickname = historyState ? historyState.data.nickname : '';
                     
                 return { myId, myNickname };
             };
@@ -137,16 +210,6 @@
                 return { x, y };
             };
 
-            const getCursorIcon = (id) => {
-                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
-                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
-                const cursorIcon = document.querySelector(`#cursor-${id}`);
-                if (cursorIcon) {
-                    cursorIcon.style.display = "block";
-                    return cursorIcon
-                }
-            }
-
             const updateEditor = (value) => {
                 editorTextarea.value = value;
             };
@@ -156,7 +219,7 @@
                     location.href = location.origin + location.pathname;
                 }
 
-                const { myId, myNickname } = getHistoryState();
+                const { myId } = getHistoryState();
                 memberList.innerHTML = "";
                 cursorWrapperDiv.innerHTML = "";
 
@@ -165,9 +228,9 @@
                     const memberElement = document.createElement("li");
                     memberElement.textContent = nickname;
 
-                    console.log('nickname === myNickname: ', id === myId);
                     if (id === myId) {
                         memberElement.style.fontWeight = "bold";
+                        memberElement.textContent = `㉯ ${memberElement.textContent}`;
                     }
                     memberList.appendChild(memberElement);
 
@@ -192,26 +255,20 @@
 
             const updateCursor = (editorialMemberData) => {
                 const { myId } = getHistoryState();
-                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
-                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+                removeCursor();
                 editorialMemberData.map((editorialMember) => {
-
                     const { id, cursorOffset, prevCursorOffset, typing } = editorialMember;
 
                     if (myId === id) return;
 
                     const y = cursorOffset.y;
                     const x = y - prevCursorOffset.y > 0 && cursorOffset.x > 0 ? 0 : cursorOffset.x;
-
                     const cursorIcon = document.querySelector(`#cursor-${id}`);
                     if (typing) {
-                        
-                        console.log('cursorIcon: ', cursorIcon);
                         cursorIcon.style.display = "block";
                         cursorIcon.style.top = `${15 * y}px`;
                         cursorIcon.style.left = `${7.2 * x}px`;
                     }
-
                 })
             };
 
@@ -220,6 +277,7 @@
                 nicknameLayerDiv.style.display = "none";
                 contentDiv.style.display = "block";
 
+                removeCursor()
                 storageObject.editor.handler();
 
                 updateMember(storageObject.member.getData());
@@ -272,7 +330,7 @@
                 );
 
                 if (sameNickname) {
-                    alert("같은 닉네임이 있습니다.");
+                    return alert("같은 닉네임이 있습니다.");
                 }
 
                 const myId = savedMemberData.length;
@@ -288,7 +346,7 @@
                 savedMemberData.push(newMemberData);
                 savedEditorialMemberData.push(newEditorialMember);
 
-                history.pushState({ data: newMemberData }, "", `?id=${myId}&nickname=${nickname}`);
+                history.pushState({ data: newMemberData }, "", `?id=${myId}`);
 
                 localStorage.setItem("member", JSON.stringify(savedMemberData));
                 localStorage.setItem("newMember", JSON.stringify(newMemberData));
@@ -301,9 +359,7 @@
                 const { myId, myNickname } = getHistoryState();
                 const savedEditorialMemberData = storageObject.editorialMember.getData();
                 const editorValue = editorTextarea.value;
-
-                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
-                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+                removeCursor()
                 savedEditorialMemberData.map((savedEditorialMember) => {
                     const { id, cursorOffset } = savedEditorialMember;
                     
