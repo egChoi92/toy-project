@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import * as S from "./styles";
 
 type FlipCard = {
@@ -11,10 +11,16 @@ interface FlipCardListProps {
 }
 
 const FlipCardList: FC<FlipCardListProps> = ({ imageData }) => {
+  const [active, setActive] = useState<number | null>(null);
+
+  const handleClick = (index: number) => {
+    setActive(index);
+    console.log(`Clicked card ${index}`);
+  };
   return (
     <S.CardList>
-      {imageData.map((data) => (
-        <S.Card>
+      {imageData.map((data, index) => (
+        <S.Card key={index} onClick={() => handleClick(index)} isActive={active === index}>
           <S.FrontImageContainer>
             <S.Image src={data.frontImage.src} alt={data.frontImage.alt} />
           </S.FrontImageContainer>
