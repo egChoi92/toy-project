@@ -47,11 +47,11 @@ function App() {
   ];
 
   return (
-    <>
+    <div style={{ overflowX: "hidden" }}>
       <TextAppearByScrolling />
       <VideoAppearByScrolling videoSrc="https://static.toss.im/assignment/main.mp4" />
       <FlipCardList imageData={imageData} />;
-    </>
+    </div>
   );
 }
 
