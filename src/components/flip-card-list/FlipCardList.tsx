@@ -1,4 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
+import TextMoveUp from "../text-move-up/TextMoveUp";
 import * as S from "./styles";
 
 type FlipCard = {
@@ -31,10 +32,17 @@ const FlipCardList: FC<FlipCardListProps> = ({ imageData }) => {
     };
   }, []);
 
-  console.log("aaa", isVisible);
-
   return (
     <S.Container>
+      <TextMoveUp
+        text={
+          <>
+            금융이 불안했던 순간들,
+            <br />
+            토스가 지켜드릴게요
+          </>
+        }
+      />
       <S.CardList ref={containerRef}>
         {imageData.map((data, index) => (
           <S.Card key={index} onClick={() => handleClick(index)} isActive={active === index} isVisible={isVisible}>
