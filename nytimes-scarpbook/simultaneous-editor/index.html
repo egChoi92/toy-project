@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Collaborative Text Editor</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                height: 100vh;
+                font-size: 16px;
+            }
+            button, input {
+                padding: 10px 20px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: #eee;
+                line-height: 14px;
+                cursor: pointer;
+            }
+            input {
+                background-color: #fff;
+            }
+            label {
+                position: absolute;
+                clip: rect(0, 0, 0, 0);
+            }
+            #editor-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+            }
+            #content {
+                width: 96%;
+                max-width: 800px;
+                height: 50%;
+                margin: auto;
+            }
+            #content-wrapper {
+                display: flex;
+                height: 100%;
+            }
+            #editor-box {
+                position: relative;
+                flex: 0.7;
+                padding: 10px;
+                border: 1px solid #ddd;
+            }
+            #editor {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+            #cursor-wrapper {
+                position: absolute;
+                top: 12px;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #cursor-wrapper > i {
+                position: absolute;
+                padding: 0 2px;
+                border-left: 1px solid #000;
+                background: rgb(255, 0, 0, 0.8);
+                font-size: 10px;
+                color: #fff;
+                white-space: nowrap;
+                animation: cursor 1s linear infinite;
+            }
+            #sidebar {
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                flex: 0.3;
+                border: 1px solid #ddd;
+                background-color: #fafafa;
+                text-align: center;
+            }
+            #sidebar-header {
+                padding: 15px;
+                background-color: #eee;
+            }
+            #member-list {
+                flex: 1;
+                overflow: auto;
+                padding: 10px;
+                border-top: 1px solid #ddd;
+                list-style: none;
+                text-align: left;
+            }
+            #member-list > li {
+                margin-top: 10px;
+                padding: 0 10px;
+            }
+            #notification {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                padding: 10px 15px;
+                background-color: #eee;
+                font-size: 13px;
+            }
+            #notification:empty {
+                display: none;
+            }
+            @keyframes cursor {
+                100% {
+                    border-color: transparent;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="editor-container">
+            <button id="join-button" onclick="handleRoomCreate()">방 만들기</button>
+            <div id="nickname-layer" style="display: none">
+                <label for="nickname">닉네임 설정</label>
+                <input type="text" id="nickname" placeholder="닉네임을 입력해주세요" />
+                <button type="button" onclick="handleRoomJoin()">입장</button>
+            </div>
+            <div id="content" style="display: none">
+                <div id="content-wrapper">
+                    <div id="editor-box">
+                        <textarea id="editor" contenteditable="true"></textarea>
+                        <div id="cursor-wrapper"></div>
+                    </div>
+                    <div id="sidebar">
+                        <div id="sidebar-header">참여자 목록</div>
+                        <ul id="member-list"></ul>
+                        <div id="notification"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const nicknameLayerDiv = document.getElementById("nickname-layer");
+            const nicknameInput = document.getElementById("nickname");
+            const joinButton = document.getElementById("join-button");
+            const contentDiv = document.getElementById("content");
+            const editorTextarea = document.getElementById("editor");
+            const cursorWrapperDiv = document.getElementById("cursor-wrapper");
+            const memberList = document.getElementById("member-list");
+            const notificationDiv = document.getElementById("notification");
+            const storageObject = {
+                editor: {
+                    handler: () => handleAfterLocalStorage("editor")(updateEditor),
+                },
+                member: {
+                    getData: () => JSON.parse(localStorage.getItem("member")) || [],
+                    handler: () => handleAfterLocalStorage("member")(updateMember),
+                },
+                newMember: {
+                    handler: () => handleAfterLocalStorage("newMember")(updateNotification ),
+                },
+                editorialMember: {
+                    getData: () => JSON.parse(localStorage.getItem("editorialMember")) || [],
+                    handler: () => handleAfterLocalStorage("editorialMember")(updateCursor),
+                },
+            };
+            const initialCursorOffset = { x: 0, y: 0 };
+
+            const removeCursor = () => {
+                const cursorIconArray = Array.from(document.querySelectorAll(`#cursor-wrapper > i`));
+                cursorIconArray.map((cursorIcon) => cursorIcon.style.display = "none");
+            }
+
+            const getHistoryState = () => {
+                const historyState = history.state;
+                const urlParams = new URL(location.href).searchParams
+                const myId = historyState ? historyState.data.id : Number(urlParams.get('id'));
+                const myNickname = historyState ? historyState.data.nickname : '';
+                    
+                return { myId, myNickname };
+            };
+
+            const getByte = (string) => {
+                return string
+                    .split("")
+                    .map((s) => s.charCodeAt(0))
+                    .reduce((prev, c) => prev + (c === 10 ? 2 : c >> 7 ? 2 : 1), 0);
+            }
+
+            function getCursorPosition() {
+                if (editorTextarea.selectionStart !== undefined) {
+                    return editorTextarea.selectionStart;
+                } else if (document.selection) {
+                    editorTextarea.focus();
+                    var selection = document.selection.createRange();
+                    selection.moveStart("character", -editorTextarea.value.length);
+                    
+                    return selection.text.length;
+                }
+            }
+
+            const getCursorOffset = (string, rows) => {
+                const subStr = string.substr(0, rows);
+                const splitString = subStr.split("\n");
+                const y = splitString.length - 1;
+                const x = getByte(splitString.pop())
+
+                return { x, y };
+            };
+
+            const updateEditor = (value) => {
+                editorTextarea.value = value;
+            };
+
+            const updateMember = (memberData) => {
+                if (memberData.length <= 0) {
+                    location.href = location.origin + location.pathname;
+                }
+
+                const { myId } = getHistoryState();
+                memberList.innerHTML = "";
+                cursorWrapperDiv.innerHTML = "";
+
+                memberData.forEach((member) => {
+                    const { id, nickname } = member;
+                    const memberElement = document.createElement("li");
+                    memberElement.textContent = nickname;
+
+                    if (id === myId) {
+                        memberElement.style.fontWeight = "bold";
+                        memberElement.textContent = `㉯ ${memberElement.textContent}`;
+                    }
+                    memberList.appendChild(memberElement);
+
+                    const cursorElement = document.createElement("i");
+                    cursorElement.style.display = "none";
+                    cursorElement.textContent = nickname;
+                    cursorElement.id = `cursor-${id}`;
+
+                    if (id !== myId) cursorWrapperDiv.appendChild(cursorElement);
+                });
+            };
+
+            const updateNotification = (newMemberData) => {
+                const { myId } = getHistoryState()
+                if (myId !== newMemberData.id) {
+                    notificationDiv.textContent = `${newMemberData.nickname}님이 입장하였습니다.`;
+                    setTimeout(() => {
+                        notificationDiv.textContent = "";
+                    }, 2000);
+                }
+            };
+
+            const updateCursor = (editorialMemberData) => {
+                const { myId } = getHistoryState();
+                removeCursor();
+                editorialMemberData.map((editorialMember) => {
+                    const { id, cursorOffset, prevCursorOffset, typing } = editorialMember;
+
+                    if (myId === id) return;
+
+                    const y = cursorOffset.y;
+                    const x = y - prevCursorOffset.y > 0 && cursorOffset.x > 0 ? 0 : cursorOffset.x;
+                    const cursorIcon = document.querySelector(`#cursor-${id}`);
+                    if (typing) {
+                        cursorIcon.style.display = "block";
+                        cursorIcon.style.top = `${15 * y}px`;
+                        cursorIcon.style.left = `${7.2 * x}px`;
+                    }
+                })
+            };
+
+            const renderEditor = () => {
+                joinButton.style.display = "none";
+                nicknameLayerDiv.style.display = "none";
+                contentDiv.style.display = "block";
+
+                removeCursor()
+                storageObject.editor.handler();
+
+                updateMember(storageObject.member.getData());
+
+                if (storageObject.editorialMember.getData().length > 0) {
+                    storageObject.editorialMember.handler();
+                }
+            };
+
+            const router = () => {
+                const searchParams = location.search;
+
+                if (searchParams) {
+                    renderEditor();
+                } else {
+                    contentDiv.style.display = "none";
+                    joinButton.style.display = "block";
+                }
+            };
+
+            const handleAfterLocalStorage = (storageKey) => {
+                const localStorageData = localStorage.getItem(storageKey);
+
+                let parsedValue;
+                try {
+                    parsedValue = JSON.parse(localStorageData);
+                } catch (error) {
+                    parsedValue = localStorageData;
+                }
+
+                return function (callback) {
+                    callback(parsedValue);
+                };
+            };
+
+            const handleRoomCreate = () => {
+                nicknameLayerDiv.style.display = "block";
+                joinButton.style.display = "none";
+            };
+
+            const handleRoomJoin = () => {
+                const savedMemberData = storageObject.member.getData();
+                const savedEditorialMemberData = storageObject.editorialMember.getData();
+                const nickname = nicknameInput.value.trim();
+
+                if (!nickname) return;
+
+                const sameNickname = savedMemberData.find(
+                    (member) => member.nickname === nickname
+                );
+
+                if (sameNickname) {
+                    return alert("같은 닉네임이 있습니다.");
+                }
+
+                const myId = savedMemberData.length;
+                const newMemberData = {
+                    id: myId,
+                    nickname,
+                };
+                const newEditorialMember = {
+                    ...newMemberData,
+                    prevCursorOffset: initialCursorOffset,
+                    cursorOffset: initialCursorOffset,
+                }
+                savedMemberData.push(newMemberData);
+                savedEditorialMemberData.push(newEditorialMember);
+
+                history.pushState({ data: newMemberData }, "", `?id=${myId}`);
+
+                localStorage.setItem("member", JSON.stringify(savedMemberData));
+                localStorage.setItem("newMember", JSON.stringify(newMemberData));
+                localStorage.setItem("editorialMember", JSON.stringify(savedEditorialMemberData));
+
+                renderEditor();
+            };
+
+            const handleEditorUpdate = (event) => {
+                const { myId, myNickname } = getHistoryState();
+                const savedEditorialMemberData = storageObject.editorialMember.getData();
+                const editorValue = editorTextarea.value;
+                removeCursor()
+                savedEditorialMemberData.map((savedEditorialMember) => {
+                    const { id, cursorOffset } = savedEditorialMember;
+                    
+                    const newPrevCursorOffset = cursorOffset;
+                    const newCursorOffset = getCursorOffset(editorValue, getCursorPosition());
+                    savedEditorialMember.typing = false;
+                    const newEditorialMember = {
+                        id: myId,
+                        nickname: myNickname,
+                        prevCursorOffset: newPrevCursorOffset,
+                        cursorOffset: newCursorOffset,
+                        typing: true,
+                    }
+                    if (id === myId) {
+                        for (const key in savedEditorialMember) {
+                            if (savedEditorialMember.hasOwnProperty(key)) {
+                                savedEditorialMember[key] = newEditorialMember[key];
+                            }
+                        }
+                    }
+
+                })
+
+                localStorage.setItem("editorialMember", JSON.stringify(savedEditorialMemberData));
+
+                if (event.type !== "click") {
+                    localStorage.setItem("editor", editorValue);
+                }
+            };
+
+            editorTextarea.addEventListener("click", function (event) {
+                handleEditorUpdate(event);
+            });
+
+            editorTextarea.addEventListener("keyup", function (event) {
+                handleEditorUpdate(event);
+            });
+
+            window.addEventListener("storage", function (event) {
+                if (event.key) storageObject[event.key].handler();
+            });
+
+            window.addEventListener("load", router);
+
+            window.addEventListener("popstate", router);
+        </script>
+    </body>
+</html>
